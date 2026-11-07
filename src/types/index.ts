@@ -1,4 +1,14 @@
-export type UserRole = 'admin' | 'arbitro' | 'tesorero' | 'tribunal' | 'delegado';
+// src/types/index.ts
+
+export type UserRole = 'admin' | 'arbitro' | 'tesorero' | 'tribunal' | 'delegado' | 'user';
+
+export interface UserProfile {
+  uid: string;
+  nombre: string;
+  email: string;
+  rol: UserRole;
+  clubId?: string;
+}
 
 export interface Club {
   id: string;
@@ -8,6 +18,15 @@ export interface Club {
   goles_contra: number;
   saldoDeudor: number;
   bloqueadoDeportivo: boolean;
+}
+
+export interface Jugador {
+  id: string;
+  nombre: string;
+  club: string;
+  serie: string;
+  goles: number;
+  sancionado: boolean;
 }
 
 export interface Incidencia {
@@ -32,4 +51,15 @@ export interface ActaPartido {
   firmaArbitro?: string;
   selloInmutabilidad?: string;
   sincronizado: boolean;
+}
+
+export interface Sancion {
+  id: string;
+  clubId: string;
+  clubNombre: string;
+  jugador: string;
+  fechasCastigo: number;
+  montoMulta: number;
+  motivo: string;
+  fechaEmision: string;
 }
