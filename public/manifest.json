@@ -1,0 +1,16 @@
+{
+  "name": "Futbian.pro - Asociación San Fabián",
+  "short_name": "Futbian.pro",
+  "description": "Plataforma PWA Offline-First de Gestión Arbitral y Deportiva",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}
