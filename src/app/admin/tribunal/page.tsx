@@ -37,57 +37,123 @@ export default function TribunalPage() {
         { merge: true }
       );
 
-      setMensaje(`Fallo emitido: Jugador suspendido por ${fechas} fecha(s) y multa de $${multa.toLocaleString("es-CL")} cargada a la cuenta corriente de ${clubNombre}.`);
+      setMensaje(
+        `✓ Fallo emitido: Multa de $${multa.toLocaleString("es-CL")} imputada a ${clubNombre}.`
+      );
       setJugador("");
     } catch (error) {
       console.error(error);
-      setMensaje("Error al registrar la sanción en Firestore.");
+      setMensaje("Error al registrar la sanción.");
     }
   };
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <div className="bg-white p-6 rounded-xl shadow border">
-        <h1 className="text-2xl font-black mb-1">Tribunal de Disciplina (CU-02)</h1>
-        <p className="text-sm text-gray-500 mb-6">Imputación de castigos y traspaso automático de multas a Tesorería</p>
+    <div className="p-4 sm:p-6 max-w-3xl mx-auto space-y-5">
+      <div className="bg-slate-900 p-5 sm:p-6 rounded-2xl border-2 border-slate-800">
+        <div className="border-b-2 border-slate-800 pb-4 mb-6">
+          <span className="bg-red-600 text-white text-xs font-black px-2.5 py-1 rounded uppercase tracking-wider">
+            TRIBUNAL DE DISCIPLINA • CU-02
+          </span>
+          <h1 className="text-2xl font-black text-white mt-2">
+            Emisión de Fallos y Multas
+          </h1>
+          <p className="text-xs font-bold text-slate-400 mt-0.5">
+            Imputación automática en cuenta corriente y bloqueo deportivo en Tesorería
+          </p>
+        </div>
 
-        {mensaje && <div className="bg-emerald-50 border border-emerald-300 text-emerald-800 p-3 rounded-lg mb-4 text-sm font-medium">{mensaje}</div>}
+        {mensaje && (
+          <div className="bg-emerald-950 border-2 border-emerald-500 text-emerald-300 p-4 rounded-xl mb-5 text-sm font-black">
+            {mensaje}
+          </div>
+        )}
 
         <form onSubmit={emitirFallo} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-bold mb-1">ID Club</label>
-              <input type="text" value={clubId} onChange={(e) => setClubId(e.target.value)} className="w-full border p-2 rounded" required />
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-300 mb-1.5">
+                ID Club Infractor
+              </label>
+              <input
+                type="text"
+                value={clubId}
+                onChange={(e) => setClubId(e.target.value)}
+                className="w-full bg-slate-950 text-white border-2 border-slate-700 p-3 rounded-xl font-bold"
+                required
+              />
             </div>
             <div>
-              <label className="block text-sm font-bold mb-1">Nombre del Club</label>
-              <input type="text" value={clubNombre} onChange={(e) => setClubNombre(e.target.value)} className="w-full border p-2 rounded" required />
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-300 mb-1.5">
+                Nombre Oficial del Club
+              </label>
+              <input
+                type="text"
+                value={clubNombre}
+                onChange={(e) => setClubNombre(e.target.value)}
+                className="w-full bg-slate-950 text-white border-2 border-slate-700 p-3 rounded-xl font-bold"
+                required
+              />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-bold mb-1">Jugador Infractor</label>
-            <input type="text" placeholder="Nombre y RUT del jugador" value={jugador} onChange={(e) => setJugador(e.target.value)} className="w-full border p-2 rounded" required />
+            <label className="block text-xs font-black uppercase tracking-wider text-slate-300 mb-1.5">
+              Jugador Sancionado (Nombre / Dorsal)
+            </label>
+            <input
+              type="text"
+              placeholder="Ej: Juan Pérez (#9)"
+              value={jugador}
+              onChange={(e) => setJugador(e.target.value)}
+              className="w-full bg-slate-950 text-white border-2 border-slate-700 p-3 rounded-xl font-bold placeholder:text-slate-600"
+              required
+            />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-bold mb-1">Fechas de Suspensión</label>
-              <input type="number" value={fechas} onChange={(e) => setFechas(Number(e.target.value))} className="w-full border p-2 rounded" min={1} />
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-300 mb-1.5">
+                Fechas de Suspensión
+              </label>
+              <input
+                type="number"
+                value={fechas}
+                onChange={(e) => setFechas(Number(e.target.value))}
+                className="w-full bg-slate-950 text-yellow-400 border-2 border-slate-700 p-3 rounded-xl font-black text-lg"
+                min={1}
+              />
             </div>
             <div>
-              <label className="block text-sm font-bold mb-1">Multa Arancelaria (CLP)</label>
-              <input type="number" value={multa} onChange={(e) => setMulta(Number(e.target.value))} className="w-full border p-2 rounded" step={1000} />
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-300 mb-1.5">
+                Multa Arancelaria (CLP $)
+              </label>
+              <input
+                type="number"
+                value={multa}
+                onChange={(e) => setMulta(Number(e.target.value))}
+                className="w-full bg-slate-950 text-red-400 border-2 border-slate-700 p-3 rounded-xl font-black text-lg"
+                step={1000}
+              />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-bold mb-1">Causal Reglamentaria / Boletín</label>
-            <textarea value={motivo} onChange={(e) => setMotivo(e.target.value)} className="w-full border p-2 rounded" rows={2} />
+            <label className="block text-xs font-black uppercase tracking-wider text-slate-300 mb-1.5">
+              Causal Reglamentaria / Boletín Oficial
+            </label>
+            <textarea
+              value={motivo}
+              onChange={(e) => setMotivo(e.target.value)}
+              className="w-full bg-slate-950 text-white border-2 border-slate-700 p-3 rounded-xl font-bold"
+              rows={2}
+            />
           </div>
 
-          <button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg">
-            Publicar Boletín e Imputar Multa en Tesorería
+          <button
+            type="submit"
+            className="w-full bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-wider py-4 rounded-xl border-2 border-white shadow-lg transition"
+          >
+            ⚖ Publicar Boletín e Imputar Multa en Tesorería
           </button>
         </form>
       </div>

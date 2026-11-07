@@ -36,52 +36,75 @@ export default function FinanzasPage() {
   };
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <div className="bg-white p-6 rounded-xl shadow border">
-        <h1 className="text-2xl font-black mb-1">Tesorería General y Conciliación (CU-03)</h1>
-        <p className="text-sm text-gray-500 mb-6">Control de morosidad y desbloqueo automático de habilitación deportiva</p>
+    <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-5">
+      <div className="bg-slate-900 p-5 rounded-2xl border-2 border-slate-800">
+        <span className="bg-emerald-600 text-white text-xs font-black px-2.5 py-1 rounded uppercase tracking-wider">
+          TESORERÍA GENERAL • CU-03
+        </span>
+        <h1 className="text-2xl font-black text-white mt-2">
+          Control de Morosidad y Habilitación Deportiva
+        </h1>
+        <p className="text-xs font-bold text-slate-400 mt-0.5">
+          Conciliación de aranceles y liberación inmediata para disputar la jornada
+        </p>
+      </div>
 
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b bg-gray-50 text-xs font-bold uppercase text-gray-600">
-              <th className="p-3">Club Federado</th>
-              <th className="p-3">Deuda Acumulada</th>
-              <th className="p-3">Estado Deportivo</th>
-              <th className="p-3 text-right">Acción Contable</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y text-sm">
-            {clubes.map((c) => (
-              <tr key={c.id}>
-                <td className="p-3 font-bold">{c.nombre}</td>
-                <td className="p-3 font-mono font-bold text-red-600">
-                  ${c.saldoDeudor.toLocaleString("es-CL")}
-                </td>
-                <td className="p-3">
-                  {c.bloqueadoDeportivo ? (
-                    <span className="bg-red-100 text-red-800 px-2.5 py-1 rounded text-xs font-bold">
-                      BLOQUEADO POR MOROSIDAD
-                    </span>
-                  ) : (
-                    <span className="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded text-xs font-bold">
-                      HABILITADO PARA JUGAR
-                    </span>
-                  )}
-                </td>
-                <td className="p-3 text-right">
-                  {c.saldoDeudor > 0 && (
-                    <button
-                      onClick={() => conciliarPago(c.id)}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded"
-                    >
-                      Conciliar Pago y Liberar Club
-                    </button>
-                  )}
-                </td>
+      <div className="bg-slate-900 rounded-2xl border-2 border-slate-800 overflow-hidden shadow-xl">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-950 border-b-2 border-slate-800 text-[11px] font-black uppercase tracking-wider text-slate-400">
+                <th className="p-4">Club Federado</th>
+                <th className="p-4 text-right">Deuda Acumulada</th>
+                <th className="p-4 text-center">Estado Deportivo</th>
+                <th className="p-4 text-right">Acción Contable</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-slate-800 text-sm">
+              {clubes.map((c) => (
+                <tr key={c.id} className="hover:bg-slate-800/40 transition">
+                  <td className="p-4 font-black text-white text-base">
+                    {c.nombre}
+                  </td>
+                  <td className="p-4 text-right font-mono font-black text-lg">
+                    <span
+                      className={
+                        c.saldoDeudor > 0 ? "text-red-400" : "text-emerald-400"
+                      }
+                    >
+                      ${c.saldoDeudor.toLocaleString("es-CL")}
+                    </span>
+                  </td>
+                  <td className="p-4 text-center">
+                    {c.bloqueadoDeportivo ? (
+                      <span className="inline-block bg-red-950 text-red-300 border-2 border-red-500 px-3 py-1 rounded-lg text-xs font-black uppercase">
+                        🔒 Bloqueado por Morosidad
+                      </span>
+                    ) : (
+                      <span className="inline-block bg-emerald-950 text-emerald-300 border-2 border-emerald-500 px-3 py-1 rounded-lg text-xs font-black uppercase">
+                        ✓ Habilitado para Jugar
+                      </span>
+                    )}
+                  </td>
+                  <td className="p-4 text-right">
+                    {c.saldoDeudor > 0 ? (
+                      <button
+                        onClick={() => conciliarPago(c.id)}
+                        className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-wider px-4 py-2.5 rounded-xl border-2 border-white shadow transition"
+                      >
+                        ✓ Conciliar Pago y Liberar
+                      </button>
+                    ) : (
+                      <span className="text-xs font-bold text-slate-500 uppercase">
+                        Al Día
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
