@@ -4,19 +4,20 @@
 import React, { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
 import { collection, onSnapshot } from "firebase/firestore";
-import { Jugador } from "@/types";
+import { Jugador, SERIES_OFICIALES, SerieOficial } from "@/types";
 
 const GOLEADORES_RESPALDO: Jugador[] = [
-  { id: "1", nombre: "Matías Sepúlveda (#9)", club: "CD Los Halcones", serie: "Honor", goles: 8, sancionado: false },
-  { id: "2", nombre: "Cristóbal Muñoz (#10)", club: "Estrella Precordillerana", serie: "Honor", goles: 6, sancionado: false },
-  { id: "3", nombre: "Diego Valdés (#7)", club: "Unión San Fabián", serie: "Honor", goles: 5, sancionado: false },
-  { id: "4", nombre: "Sebastián Contreras (#11)", club: "Deportivo Ñuble", serie: "Honor", goles: 4, sancionado: true },
-  { id: "5", nombre: "Felipe Riquelme (#8)", club: "CD Los Halcones", serie: "Honor", goles: 3, sancionado: false },
-  { id: "6", nombre: "Nicolás Fuentes (#19)", club: "Cóndores del Valle", serie: "Honor", goles: 2, sancionado: false },
+  { id: "1", nombre: "Matías Sepúlveda", club: "CD Los Halcones", clubId: "halcones", serie: "Honor", goles: 8, sancionado: false },
+  { id: "2", nombre: "Cristóbal Muñoz", club: "Estrella Precordillerana", clubId: "estrella", serie: "Honor", goles: 6, sancionado: false },
+  { id: "3", nombre: "Diego Valdés", club: "Unión San Fabián", clubId: "union", serie: "Honor", goles: 5, sancionado: false },
+  { id: "4", nombre: "Sebastián Contreras", club: "Deportivo Ñuble", clubId: "nuble", serie: "Honor", goles: 4, sancionado: true },
+  { id: "5", nombre: "Felipe Riquelme", club: "CD Los Halcones", clubId: "halcones", serie: "Primera", goles: 3, sancionado: false },
+  { id: "6", nombre: "Nicolás Fuentes", club: "Cóndores del Valle", clubId: "condores", serie: "Segunda", goles: 2, sancionado: false },
 ];
 
 export default function GoleadoresPage() {
   const [jugadores, setJugadores] = useState<Jugador[]>(GOLEADORES_RESPALDO);
+  const [serieFiltro, setSerieFiltro] = useState<SerieOficial | "TODAS">("TODAS");
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "jugadores"), (snap) => {
@@ -24,10 +25,13 @@ export default function GoleadoresPage() {
         const lista: Jugador[] = snap.docs.map((d) => ({
           id: d.id,
           nombre: d.data().nombre || "Jugador",
+          rut: d.data().rut || "",
           club: d.data().club || "San Fabián",
-          serie: d.data().serie || "Honor",
+          clubId: d.data().clubId || d.data().club || "club",
+          serie: (d.data().serie as SerieOficial) || "Honor",
           goles: d.data().goles || 0,
           sancionado: d.data().sancionado || false,
+          fechasPendientes: d.data().fechasPendientes || 0,
         }));
         lista.sort((a, b) => b.goles - a.goles);
         setJugadores(lista);
@@ -36,21 +40,57 @@ export default function GoleadoresPage() {
     return () => unsub();
   }, []);
 
+  const jugadoresFiltrados =
+    serieFiltro === "TODAS"
+      ? jugadores
+      : jugadores.filter((j) => j.serie === serieFiltro);
+
   return (
     <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-5">
-      {/* Cabecera */}
-      <div className="bg-slate-900 p-5 rounded-2xl border-2 border-slate-800 flex flex-wrap justify-between items-center gap-4">
-        <div>
-          <span className="bg-blue-600 text-white text-xs font-black px-2.5 py-1 rounded uppercase tracking-wider">
-            ESTADÍSTICAS INDIVIDUALES • SERIE HONOR
+      {/* Cabecera y Filtro por Serie */}
+      <div className="bg-slate-900 p-5 rounded-2xl border-2 border-slate-800 space-y-4">
+        <div className="flex flex-wrap justify-between items-center gap-4">
+          <div>
+            <span className="bg-blue-600 text-white text-xs font-black px-2.5 py-1 rounded uppercase tracking-wider">
+              ESTADÍSTICAS INDIVIDUALES • TIEMPO REAL
+            </span>
+            <h1 className="text-2xl font-black text-white mt-1">
+              Ranking Oficial de Goleadores
+            </h1>
+          </div>
+          <span className="bg-slate-950 text-yellow-400 px-3.5 py-2 rounded-xl border-2 border-yellow-400/50 text-xs font-black uppercase tracking-wider">
+            ⚽ Artilleros Asociación San Fabián
           </span>
-          <h1 className="text-2xl font-black text-white mt-1">
-            Ranking Oficial de Goleadores
-          </h1>
         </div>
-        <span className="bg-slate-950 text-yellow-400 px-3.5 py-2 rounded-xl border-2 border-yellow-400/50 text-xs font-black uppercase tracking-wider">
-          ⚽ Artilleros Temporada Oficial
-        </span>
+
+        {/* Pestañas de Filtro por Serie */}
+        <div className="flex flex-wrap gap-2 pt-2 border-t-2 border-slate-800">
+          <button
+            type="button"
+            onClick={() => setSerieFiltro("TODAS")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase border-2 transition ${
+              serieFiltro === "TODAS"
+                ? "bg-blue-600 text-white border-white"
+                : "bg-slate-950 text-slate-400 border-slate-800 hover:text-white"
+            }`}
+          >
+            Todas las Series
+          </button>
+          {SERIES_OFICIALES.map((serie) => (
+            <button
+              key={serie}
+              type="button"
+              onClick={() => setSerieFiltro(serie)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase border-2 transition ${
+                serieFiltro === serie
+                  ? "bg-blue-600 text-white border-white"
+                  : "bg-slate-950 text-slate-400 border-slate-800 hover:text-white"
+              }`}
+            >
+              {serie}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Tabla de Goleadores */}
@@ -60,7 +100,7 @@ export default function GoleadoresPage() {
             <thead>
               <tr className="bg-slate-950 border-b-2 border-slate-800 text-[11px] font-black uppercase tracking-wider text-slate-400">
                 <th className="p-4 text-center w-16">Rank</th>
-                <th className="p-4">Jugador / Dorsal</th>
+                <th className="p-4">Jugador</th>
                 <th className="p-4">Club Federado</th>
                 <th className="p-4 text-center">Serie</th>
                 <th className="p-4 text-center">Estado Tribunal</th>
@@ -68,7 +108,7 @@ export default function GoleadoresPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800 text-sm">
-              {jugadores.map((j, idx) => (
+              {jugadoresFiltrados.map((j, idx) => (
                 <tr key={j.id} className="hover:bg-slate-800/50 transition">
                   <td className="p-4 text-center font-black">
                     <span
