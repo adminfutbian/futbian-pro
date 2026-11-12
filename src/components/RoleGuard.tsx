@@ -1,3 +1,4 @@
+// src/components/RoleGuard.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -24,9 +25,14 @@ export default function RoleGuard({
         return;
       }
       const snap = await getDoc(doc(db, "users", user.uid));
-      const rol = snap.exists() ? snap.data().rol : "user";
+      const rol = snap.exists() ? snap.data().rol : "hincha";
 
-      if (allowedRoles.includes(rol) || rol === "admin") {
+      if (
+        allowedRoles.includes(rol) ||
+        rol === "admingeneral" ||
+        rol === "admin" ||
+        rol === "adminasociacion"
+      ) {
         setAutorizado(true);
       } else {
         router.push("/");
@@ -37,7 +43,11 @@ export default function RoleGuard({
   }, [allowedRoles, router]);
 
   if (cargando) {
-    return <div className="p-8 text-center text-sm text-gray-500">Verificando credenciales de seguridad...</div>;
+    return (
+      <div className="p-8 text-center text-sm font-bold text-slate-400">
+        Verificando permisos del perfil...
+      </div>
+    );
   }
 
   return autorizado ? <>{children}</> : null;
