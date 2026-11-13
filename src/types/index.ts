@@ -73,6 +73,42 @@ export const CATALOGO_CAUSALES_ROJA: Record<
   },
 };
 
+export interface TarifarioOficial {
+  multaAmarilla: number;
+  multaDobleAmarilla: number;
+  fechasDobleAmarilla: number;
+  multaRojaJuegoBrusco: number;
+  fechasRojaJuegoBrusco: number;
+  multaAgresionVerbal: number;
+  fechasAgresionVerbal: number;
+  multaAgresionFisica: number;
+  fechasAgresionFisica: number;
+  cuotaInscripcion1: number;
+  cuotaInscripcion2: number;
+  multaInasistenciaReunion: number;
+  multaNoPresentacionSerie: number;
+  cuotaCompartir: number;
+  precioBoletoStreaming: number;
+}
+
+export const TARIFARIO_POR_DEFECTO: TarifarioOficial = {
+  multaAmarilla: 2000,
+  multaDobleAmarilla: 5000,
+  fechasDobleAmarilla: 1,
+  multaRojaJuegoBrusco: 15000,
+  fechasRojaJuegoBrusco: 2,
+  multaAgresionVerbal: 25000,
+  fechasAgresionVerbal: 3,
+  multaAgresionFisica: 50000,
+  fechasAgresionFisica: 6,
+  cuotaInscripcion1: 50000,
+  cuotaInscripcion2: 50000,
+  multaInasistenciaReunion: 15000,
+  multaNoPresentacionSerie: 25000,
+  cuotaCompartir: 20000,
+  precioBoletoStreaming: 2000,
+};
+
 export interface RedesSocialesClub {
   facebook?: string;
   instagram?: string;
@@ -85,7 +121,10 @@ export interface UserProfile {
   nombre: string;
   email: string;
   rol: UserRole;
-  clubId?: string;
+  clubId?: string;          // Para perfil delegado
+  clubFavoritoId?: string;  // Para perfil hincha (Hazte Fan)
+  permisos?: string[];
+  fechaRegistro?: string;
 }
 
 export interface EstadisticaSerieClub {
@@ -103,7 +142,7 @@ export interface Club {
   escudoUrl?: string;
   redesSociales?: RedesSocialesClub;
   canchaLocal?: string;
-  prioridadCancha?: boolean; // Prioridad absoluta (ej: Paso Ancho en Estadio Paso Ancho)
+  prioridadCancha?: boolean;
   puntos: number;
   goles_favor: number;
   goles_contra: number;
@@ -229,6 +268,7 @@ export interface Auspiciador {
   id: string;
   nombre: string;
   logoUrl: string;
+  sitioWeb?: string;
 }
 
 export interface ConfigIdentidadAsociacion {

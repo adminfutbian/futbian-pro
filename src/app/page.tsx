@@ -20,6 +20,7 @@ export default function HomePage() {
   const [goleadores, setGoleadores] = useState<Jugador[]>([]);
   const [fechaHoy, setFechaHoy] = useState<string>("");
   const [rolUsuario, setRolUsuario] = useState<string>("hincha");
+  const [clubFavoritoQuick, setClubFavoritoQuick] = useState<string>("");
 
   // Estado de Logos de Asociación y Auspiciadores
   const [logoAsociacion, setLogoAsociacion] = useState<string>("");
@@ -48,7 +49,12 @@ export default function HomePage() {
     const unsubAuth = onAuthStateChanged(auth, async (u) => {
       if (u) {
         const s = await getDoc(doc(db, "users", u.uid));
-        if (s.exists()) setRolUsuario(s.data().rol || "hincha");
+        if (s.exists()) {
+          setRolUsuario(s.data().rol || "hincha");
+          if (s.data().clubFavoritoId) {
+            setClubFavoritoQuick(s.data().clubFavoritoId);
+          }
+        }
       }
     });
 
@@ -57,6 +63,10 @@ export default function HomePage() {
         id: d.id,
         nombre: d.data().nombre || d.id,
         colorPrimario: d.data().colorPrimario || "#2563eb",
+        colorSecundario: d.data().colorSecundario || "#facc15",
+        escudoUrl: d.data().escudoUrl || "",
+        canchaLocal: d.data().canchaLocal || "Estadio Municipal",
+        series: d.data().series || ["Honor"],
         puntos: d.data().puntos || 0,
         goles_favor: d.data().goles_favor || 0,
         goles_contra: d.data().goles_contra || 0,
@@ -65,6 +75,9 @@ export default function HomePage() {
       }));
       lista.sort((a, b) => b.puntos - a.puntos);
       setClubes(lista);
+      if (lista.length > 0 && !clubFavoritoQuick) {
+        setClubFavoritoQuick(lista[0].id);
+      }
     });
 
     const unsubJug = onSnapshot(collection(db, "jugadores"), (snap) => {
@@ -99,7 +112,7 @@ export default function HomePage() {
       unsubJug();
       unsubIdentidad();
     };
-  }, []);
+  }, [clubFavoritoQuick]);
 
   const comprimirImagenBase64 = (
     file: File,
@@ -173,12 +186,14 @@ export default function HomePage() {
     rolUsuario === "admin" ||
     rolUsuario === "adminasociacion";
 
+  const clubFanActual = clubes.find((c) => c.id === clubFavoritoQuick);
+
   return (
     <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-6">
-      {/* Cabecera Institucional con Logo de la Asociación y Fecha en Vivo */}
-      <div className="bg-slate-900 rounded-2xl border-2 border-slate-800 p-6 sm:p-8 shadow-2xl flex flex-col md:flex-row justify-between items-center gap-6">
+      {/* Cabecera Institucional con Logo de la Asociación, Fecha en Vivo y Botones Hazte Fan / En Vivo */}
+      <div className="bg-slate-900 rounded-2xl border-2 border-slate-800 p-6 sm:p-8 shadow-2xl flex flex-col lg:flex-row justify-between items-center gap-6">
         <div className="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
-          <div className="relative group">
+          <div className="relative group shrink-0">
             {logoAsociacion ? (
               <img
                 src={logoAsociacion}
@@ -211,17 +226,117 @@ export default function HomePage() {
               Asociación de Fútbol San Fabián
             </h1>
             <p className="text-sm font-bold text-slate-400 mt-1">
-              Estadísticas oficiales al instante, tabla de posiciones, goleadores y transmisión en vivo.
+              Estadísticas oficiales al instante, tabla de posiciones, goleadores, comunidad Hazte Fan y transmisión en vivo.
             </p>
           </div>
         </div>
 
-        <Link
-          href="/en-vivo"
-          className="bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-wider px-6 py-4 rounded-2xl border-2 border-white shadow-xl text-xs sm:text-sm animate-pulse shrink-0"
-        >
-          🔴 Ver Transmisión En Vivo
-        </Link>
+        <div className="flex flex-wrap justify-center gap-3 shrink-0">
+          <Link
+            href="/hazte-fan"
+            className="bg-yellow-400 hover:bg-yellow-300 text-black font-black uppercase tracking-wider px-5 py-4 rounded-2xl border-2 border-white shadow-xl text-xs sm:text-sm transition"
+          >
+            ⭐ ¡Hazte Fan!
+          </Link>
+          <Link
+            href="/en-vivo"
+            className="bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-wider px-5 py-4 rounded-2xl border-2 border-white shadow-xl text-xs sm:text-sm animate-pulse transition"
+          >
+            🔴 Ver En Vivo
+          </Link>
+        </div>
+      </div>
+
+      {/* Módulo Rápido Hazte Fan en Portada: Mi Equipo Favorito vs Estadísticas de la Liga */}
+      <div className="bg-slate-900 p-5 sm:p-6 rounded-2xl border-2 border-yellow-400/60 space-y-4">
+        <div className="flex flex-wrap justify-between items-center gap-3 border-b-2 border-slate-800 pb-3">
+          <div>
+            <span className="text-[10px] font-black uppercase tracking-widest text-yellow-400 block">
+              EXPERIENCIA HINCHA INTERACTIVA
+            </span>
+            <h2 className="text-lg font-black text-white uppercase">
+              Zona Hazte Fan — Explora tu Equipo Preferido
+            </h2>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={clubFavoritoQuick}
+              onChange={(e) => setClubFavoritoQuick(e.target.value)}
+              className="bg-slate-950 text-yellow-400 border-2 border-yellow-400 px-3 py-2 rounded-xl text-xs font-black uppercase"
+            >
+              {clubes.map((c) => (
+                <option key={c.id} value={c.id}>
+                  ❤️ {c.nombre}
+                </option>
+              ))}
+            </select>
+            <Link
+              href="/hazte-fan"
+              className="bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-2 rounded-xl border border-white text-xs font-black uppercase"
+            >
+              Crear Cuenta Fan →
+            </Link>
+          </div>
+        </div>
+
+        {clubFanActual && (
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 flex items-center gap-3">
+              {clubFanActual.escudoUrl ? (
+                <img
+                  src={clubFanActual.escudoUrl}
+                  alt={clubFanActual.nombre}
+                  className="w-11 h-11 rounded-lg object-contain bg-slate-900 p-1"
+                />
+              ) : (
+                <div
+                  style={{
+                    backgroundColor: clubFanActual.colorPrimario || "#2563eb",
+                  }}
+                  className="w-11 h-11 rounded-lg flex items-center justify-center font-black text-white text-sm"
+                >
+                  {clubFanActual.nombre.slice(0, 2).toUpperCase()}
+                </div>
+              )}
+              <div>
+                <span className="text-[10px] font-black uppercase text-slate-400 block">
+                  CLUB SELECCIONADO
+                </span>
+                <span className="font-black text-sm text-white">
+                  {clubFanActual.nombre}
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-center">
+              <span className="text-[10px] font-black uppercase text-slate-400 block">
+                PUNTAJE ACTUAL
+              </span>
+              <span className="text-2xl font-black text-yellow-400">
+                {clubFanActual.puntos} PTS
+              </span>
+            </div>
+
+            <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-center">
+              <span className="text-[10px] font-black uppercase text-slate-400 block">
+                GOLES A FAVOR / CONTRA
+              </span>
+              <span className="text-2xl font-black text-emerald-400">
+                {clubFanActual.goles_favor} / {clubFanActual.goles_contra}
+              </span>
+            </div>
+
+            <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-center">
+              <span className="text-[10px] font-black uppercase text-slate-400 block">
+                ESTADIO LOCAL
+              </span>
+              <span className="text-xs font-black text-blue-400 block mt-1.5">
+                📍 {clubFanActual.canchaLocal}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Gráficos Animados de Estadísticas en Tiempo Real */}
@@ -271,7 +386,7 @@ export default function HomePage() {
               ⚽ Gráfico en Vivo: Poder Goleador por Club
             </h2>
             <span className="text-xs font-bold text-slate-400">
-              Total Goles Convertidos
+              Total Goles Convertidos ({goleadores.length} artilleros activos)
             </span>
           </div>
 
@@ -338,7 +453,7 @@ export default function HomePage() {
 
         {auspiciadores.length === 0 ? (
           <p className="text-xs font-bold text-slate-400 text-center py-4">
-            Espacio disponible para logos de auspiciadores oficiales de la Asociación.
+            Espacio disponible para logos de auspiciadores oficiales de la Asociación (editable en Configuración).
           </p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4">

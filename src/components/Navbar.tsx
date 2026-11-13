@@ -49,11 +49,25 @@ export default function Navbar() {
       </div>
 
       <div className="flex flex-wrap gap-3.5 items-center text-xs sm:text-sm font-bold">
-        {/* Rutas Hincha y Todos los Perfiles */}
-        <Link href="/" className="hover:text-blue-300">Inicio</Link>
-        <Link href="/tablas" className="hover:text-blue-300">Posiciones</Link>
-        <Link href="/goleadores" className="hover:text-blue-300">Goleadores</Link>
-        <Link href="/fixture" className="hover:text-blue-300">Fixture</Link>
+        {/* Rutas Públicas y para Hincha */}
+        <Link href="/" className="hover:text-blue-300">
+          Inicio
+        </Link>
+        <Link href="/tablas" className="hover:text-blue-300">
+          Posiciones
+        </Link>
+        <Link href="/goleadores" className="hover:text-blue-300">
+          Goleadores
+        </Link>
+        <Link href="/fixture" className="hover:text-blue-300">
+          Fixture
+        </Link>
+        <Link
+          href="/hazte-fan"
+          className="bg-yellow-400 text-black px-3 py-1 rounded-lg font-black uppercase text-xs hover:bg-yellow-300 border border-white transition"
+        >
+          ⭐ Hazte Fan
+        </Link>
         <Link
           href="/en-vivo"
           className="bg-red-600/20 text-red-400 border border-red-500/60 px-2.5 py-1 rounded-lg hover:bg-red-600 hover:text-white transition"
@@ -61,16 +75,22 @@ export default function Navbar() {
           🔴 En Vivo
         </Link>
 
-        {/* Delegado (Solo ve su club) + Admins */}
+        {/* Ruta Delegado (Solo ve su club) + Admins */}
         {(esDelegado || esAdminAsociacion || esAdminGeneral) && (
-          <Link href="/dashboard/mi-club" className="text-yellow-400 hover:text-yellow-300">
+          <Link
+            href="/dashboard/mi-club"
+            className="text-yellow-400 hover:text-yellow-300"
+          >
             Mi Club
           </Link>
         )}
 
-        {/* Planilla Arbitral (AdminAsociacion puede ver en modo lectura, Arbitro y AdminGeneral editan) */}
+        {/* Ruta Planilla Arbitral (AdminAsociacion en modo lectura, Arbitro y AdminGeneral editan) */}
         {(esArbitro || esAdminAsociacion || esAdminGeneral) && (
-          <Link href="/dashboard/planilla" className="text-yellow-400 hover:text-yellow-300">
+          <Link
+            href="/dashboard/planilla"
+            className="text-yellow-400 hover:text-yellow-300"
+          >
             Planilla
           </Link>
         )}
@@ -78,16 +98,34 @@ export default function Navbar() {
         {/* Módulos de Gestión Asociación y General */}
         {(esAdminAsociacion || esAdminGeneral) && (
           <>
-            <Link href="/admin/finanzas" className="text-emerald-400 hover:text-emerald-300">
+            <Link
+              href="/admin/finanzas"
+              className="text-emerald-400 hover:text-emerald-300"
+            >
               Finanzas
             </Link>
-            <Link href="/admin/tribunal" className="text-emerald-400 hover:text-emerald-300">
+            <Link
+              href="/admin/tribunal"
+              className="text-emerald-400 hover:text-emerald-300"
+            >
               Tribunal
             </Link>
-            <Link href="/admin/torneos" className="text-emerald-400 hover:text-emerald-300">
+            <Link
+              href="/admin/torneos"
+              className="text-emerald-400 hover:text-emerald-300"
+            >
               Torneos
             </Link>
-            <Link href="/admin/configuracion" className="text-emerald-400 hover:text-emerald-300">
+            <Link
+              href="/admin/usuarios"
+              className="text-emerald-400 hover:text-emerald-300"
+            >
+              Perfiles
+            </Link>
+            <Link
+              href="/admin/configuracion"
+              className="text-emerald-400 hover:text-emerald-300"
+            >
               Configuración
             </Link>
             <button
