@@ -3,9 +3,11 @@
 export type UserRole =
   | 'hincha'
   | 'delegado'
+  | 'turno'
+  | 'arbitro'
+  | 'multimedia'
   | 'adminasociacion'
   | 'admingeneral'
-  | 'arbitro'
   | 'tesorero'
   | 'tribunal'
   | 'admin'
@@ -29,6 +31,17 @@ export const SERIES_OFICIALES: SerieOficial[] = [
   'Honor',
   'Juvenil',
 ];
+
+// Duración en minutos por tiempo reglamentario según la serie (ej: 45 min por tiempo = 90 total)
+export const TIEMPOS_JUEGO_POR_DEFECTO: Record<SerieOficial, number> = {
+  Honor: 45,
+  Primera: 40,
+  Segunda: 35,
+  'Super Senior 35': 35,
+  'Super Senior 40': 30,
+  Damas: 30,
+  Juvenil: 35,
+};
 
 export type CodigoCausalRoja =
   | 'DOBLE_AMARILLA'
@@ -89,6 +102,7 @@ export interface TarifarioOficial {
   multaNoPresentacionSerie: number;
   cuotaCompartir: number;
   precioBoletoStreaming: number;
+  tiemposPorSerie?: Record<SerieOficial, number>;
 }
 
 export const TARIFARIO_POR_DEFECTO: TarifarioOficial = {
@@ -107,6 +121,7 @@ export const TARIFARIO_POR_DEFECTO: TarifarioOficial = {
   multaNoPresentacionSerie: 25000,
   cuotaCompartir: 20000,
   precioBoletoStreaming: 2000,
+  tiemposPorSerie: TIEMPOS_JUEGO_POR_DEFECTO,
 };
 
 export interface RedesSocialesClub {
@@ -121,8 +136,8 @@ export interface UserProfile {
   nombre: string;
   email: string;
   rol: UserRole;
-  clubId?: string;          // Para perfil delegado
-  clubFavoritoId?: string;  // Para perfil hincha (Hazte Fan)
+  clubId?: string;
+  clubFavoritoId?: string;
   permisos?: string[];
   fechaRegistro?: string;
 }
@@ -140,6 +155,7 @@ export interface Club {
   colorSecundario?: string;
   series?: SerieOficial[];
   escudoUrl?: string;
+  instagramUrl?: string; // URL directa a Instagram del club
   redesSociales?: RedesSocialesClub;
   canchaLocal?: string;
   prioridadCancha?: boolean;
@@ -166,6 +182,7 @@ export interface Jugador {
 
 export interface Incidencia {
   minuto: number;
+  tiempoSegundo?: string; // Ej: "14:22"
   tipo: 'gol' | 'amarilla' | 'roja' | 'cambio';
   jugadorId: string;
   jugadorNombre: string;
@@ -176,6 +193,7 @@ export interface Incidencia {
   causalDetalle?: string;
   fechasCastigo?: number;
   multaAsociada?: number;
+  registradoPor?: string; // Turno o Árbitro
 }
 
 export interface ActaPartido {
@@ -186,6 +204,7 @@ export interface ActaPartido {
   jornada: number;
   serie: string;
   cancha?: string;
+  duracionTiempoMinutos?: number;
   clubLocalId: string;
   clubLocalNombre: string;
   clubVisitaId: string;
@@ -194,7 +213,14 @@ export interface ActaPartido {
   golesVisita: number;
   incidencias: Incidencia[];
   informeArbitralTexto?: string;
-  estado: 'programado' | 'en_juego' | 'cerrado_inmutable';
+  estado:
+    | 'programado'
+    | 'en_juego'
+    | 'pendiente_ratificacion_arbitro'
+    | 'cerrado_inmutable';
+  nombreTurno?: string;
+  firmaTurno?: string;
+  ratificadoPorArbitro?: boolean;
   firmaArbitro?: string;
   selloInmutabilidad?: string;
   sincronizado: boolean;
@@ -271,14 +297,25 @@ export interface Auspiciador {
   sitioWeb?: string;
 }
 
+export interface AnuncioPublicitario {
+  id: string;
+  titulo: string;
+  descripcion: string;
+  imagenUrl?: string;
+  enlaceUrl?: string;
+  etiqueta?: string; // Ej: "PROMOCIÓN AUSPICIADOR", "AVISO OFICIAL"
+}
+
 export interface ConfigIdentidadAsociacion {
   nombreAsociacion: string;
   logoAsociacionUrl: string;
   auspiciadores: Auspiciador[];
+  anuncios?: AnuncioPublicitario[];
 }
 
 export interface PartidoTransmision {
   id: string;
+  enunciado: string; // Ej: "Gran Clásico Precordillerano - Fecha 3"
   jornada: number;
   serie: SerieOficial;
   localNombre: string;

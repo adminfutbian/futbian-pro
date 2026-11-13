@@ -50,6 +50,10 @@ export default function ConfiguracionPage() {
   const [mensaje, setMensaje] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
+  // Buscadores rápidos
+  const [busquedaClubes, setBusquedaClubes] = useState("");
+  const [busquedaJugadores, setBusquedaJugadores] = useState("");
+
   // --- ESTADOS CRUD CLUB ---
   const [clubEditandoId, setClubEditandoId] = useState<string | null>(null);
   const [nombreClub, setNombreClub] = useState("");
@@ -61,6 +65,7 @@ export default function ConfiguracionPage() {
     "Honor",
   ]);
   const [escudoUrl, setEscudoUrl] = useState("");
+  const [instagramUrl, setInstagramUrl] = useState("");
   const [canchaLocal, setCanchaLocal] = useState(CANCHAS_BASE[0]);
   const [prioridadCancha, setPrioridadCancha] = useState(false);
 
@@ -89,6 +94,8 @@ export default function ConfiguracionPage() {
         colorSecundario: d.data().colorSecundario || "#facc15",
         series: d.data().series || ["Honor"],
         escudoUrl: d.data().escudoUrl || "",
+        instagramUrl:
+          d.data().instagramUrl || d.data().redesSociales?.instagram || "",
         canchaLocal: d.data().canchaLocal || CANCHAS_BASE[0],
         prioridadCancha: d.data().prioridadCancha || false,
         puntos: d.data().puntos || 0,
@@ -194,6 +201,8 @@ export default function ConfiguracionPage() {
         colorSecundario,
         series: seriesClub,
         escudoUrl,
+        instagramUrl: instagramUrl.trim(),
+        redesSociales: { instagram: instagramUrl.trim() },
         canchaLocal,
         prioridadCancha,
       },
@@ -221,6 +230,7 @@ export default function ConfiguracionPage() {
     setColorSecundario(c.colorSecundario || "#facc15");
     setSeriesClub(c.series || ["Honor"]);
     setEscudoUrl(c.escudoUrl || "");
+    setInstagramUrl(c.instagramUrl || "");
     setCanchaLocal(c.canchaLocal || CANCHAS_BASE[0]);
     setPrioridadCancha(!!c.prioridadCancha);
   };
@@ -229,6 +239,7 @@ export default function ConfiguracionPage() {
     setClubEditandoId(null);
     setNombreClub("");
     setEscudoUrl("");
+    setInstagramUrl("");
     setPrioridadCancha(false);
   };
 
@@ -256,11 +267,6 @@ export default function ConfiguracionPage() {
         club: clubObj.nombre,
         serie: serieJug,
       });
-      await registrarAccionAuditoria(
-        "CONFIGURACION_JUGADORES",
-        "EDITAR_JUGADOR",
-        `Jugador editado: ${nombreJug} (${clubObj.nombre} - ${serieJug})`
-      );
       setMensaje(`✓ Jugador "${nombreJug}" actualizado.`);
     } else {
       await addDoc(collection(db, "jugadores"), {
@@ -273,11 +279,6 @@ export default function ConfiguracionPage() {
         sancionado: false,
         fechasPendientes: 0,
       });
-      await registrarAccionAuditoria(
-        "CONFIGURACION_JUGADORES",
-        "CREAR_JUGADOR",
-        `Jugador creado: ${nombreJug} (${clubObj.nombre} - ${serieJug})`
-      );
       setMensaje(`✓ Jugador "${nombreJug}" inscrito.`);
     }
 
@@ -300,13 +301,8 @@ export default function ConfiguracionPage() {
     await setDoc(doc(db, "configuracion", "aranceles_oficiales"), tarifario, {
       merge: true,
     });
-    await registrarAccionAuditoria(
-      "CONFIGURACION_TARIFARIO",
-      "ACTUALIZAR_VALORES_SANCIONES",
-      `Tarifario de multas, rojas y cuotas actualizado en Firestore.`
-    );
     setMensaje(
-      "✓ Valores oficiales de Sanciones, Tarjetas, Cuotas y Boletos actualizados en toda la app."
+      "✓ Valores oficiales de Sanciones, Tarjetas, Cuotas y Boletos actualizados."
     );
   };
 
@@ -349,17 +345,11 @@ export default function ConfiguracionPage() {
       { merge: true }
     );
 
-    await registrarAccionAuditoria(
-      "CONFIGURACION_AUSPICIADORES",
-      ausEditandoId ? "EDITAR_AUSPICIADOR" : "CREAR_AUSPICIADOR",
-      `Auspiciador gestionado: ${nombreAus}`
-    );
-
     setAusEditandoId(null);
     setNombreAus("");
     setWebAus("");
     setLogoAus("");
-    setMensaje("✓ Padrón de Auspiciadores e Identidad actualizado.");
+    setMensaje("✓ Padrón de Auspiciadores actualizado.");
   };
 
   const eliminarAuspiciadorCRUD = async (id: string) => {
@@ -369,7 +359,6 @@ export default function ConfiguracionPage() {
       { auspiciadores: nuevaLista },
       { merge: true }
     );
-    setMensaje("Auspiciador eliminado.");
   };
 
   const reiniciarEstadisticasTemporadaCero = async () => {
@@ -388,19 +377,11 @@ export default function ConfiguracionPage() {
         fechasPendientes: 0,
       });
     }
-    await registrarAccionAuditoria(
-      "CONFIGURACION_SISTEMA",
-      "REINICIO_TEMPORADA_DESDE_CERO",
-      "Se reiniciaron puntos y goles de todos los clubes y jugadores a 0 para nueva temporada."
-    );
-    setMensaje(
-      "✓ Temporada reiniciada a 0: Clubes y jugadores conservan sus fichas, con puntos y goles en 0."
-    );
+    setMensaje("✓ Estadísticas de puntos y goles reiniciadas a 0.");
   };
 
   return (
     <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-6">
-      {/* Cabecera y Pestañas del Centro de Control */}
       <div className="bg-slate-900 p-5 sm:p-6 rounded-2xl border-2 border-slate-800 space-y-4">
         <div>
           <span className="bg-blue-600 text-white text-xs font-black px-2.5 py-1 rounded uppercase">
@@ -409,9 +390,6 @@ export default function ConfiguracionPage() {
           <h1 className="text-2xl font-black text-white mt-1">
             Configuración Integral desde Cero (CRUD Completo)
           </h1>
-          <p className="text-xs font-bold text-slate-400">
-            Administre clubes, nóminas de jugadores, valores de sanciones/cuotas, auspiciadores e identidad de la liga.
-          </p>
         </div>
 
         <div className="flex flex-wrap gap-2 pt-2 border-t-2 border-slate-800">
@@ -496,55 +474,55 @@ export default function ConfiguracionPage() {
                 />
               </div>
 
-              <div className="md:col-span-2">
-                <label className="block text-xs font-black uppercase text-slate-300 mb-1">
-                  Color 1
-                </label>
-                <input
-                  type="color"
-                  value={colorPrimario}
-                  onChange={(e) => setColorPrimario(e.target.value)}
-                  className="w-full h-11 rounded-xl bg-slate-950 border-2 border-slate-700 p-1 cursor-pointer"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-xs font-black uppercase text-slate-300 mb-1">
-                  Color 2
-                </label>
-                <input
-                  type="color"
-                  value={colorSecundario}
-                  onChange={(e) => setColorSecundario(e.target.value)}
-                  className="w-full h-11 rounded-xl bg-slate-950 border-2 border-slate-700 p-1 cursor-pointer"
-                />
-              </div>
-
               <div className="md:col-span-4">
-                <label className="block text-xs font-black uppercase text-slate-300 mb-1">
-                  Escudo del Club
+                <label className="block text-xs font-black uppercase text-pink-400 mb-1">
+                  URL de Instagram del Club (Link Directo)
                 </label>
-                <div className="flex items-center gap-3">
-                  {escudoUrl && (
-                    <img
-                      src={escudoUrl}
-                      alt="Escudo"
-                      className="w-11 h-11 rounded-xl object-contain bg-slate-950 border border-white p-1"
-                    />
-                  )}
-                  <label className="flex-1 cursor-pointer bg-slate-950 hover:bg-slate-800 text-white text-xs font-black uppercase py-3 px-3 rounded-xl border-2 border-slate-700 text-center">
-                    Subir Imagen
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) comprimirImagen(f, setEscudoUrl);
-                      }}
-                      className="hidden"
-                    />
-                  </label>
+                <input
+                  type="text"
+                  placeholder="https://instagram.com/tu_club o @tu_club"
+                  value={instagramUrl}
+                  onChange={(e) => setInstagramUrl(e.target.value)}
+                  className="w-full bg-slate-950 text-white border-2 border-pink-500/50 p-3 rounded-xl font-bold text-xs"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-xs font-black uppercase text-slate-300 mb-1">
+                  Colores (1 y 2)
+                </label>
+                <div className="flex gap-1">
+                  <input
+                    type="color"
+                    value={colorPrimario}
+                    onChange={(e) => setColorPrimario(e.target.value)}
+                    className="w-1/2 h-11 rounded-lg bg-slate-950 border border-slate-700 cursor-pointer"
+                  />
+                  <input
+                    type="color"
+                    value={colorSecundario}
+                    onChange={(e) => setColorSecundario(e.target.value)}
+                    className="w-1/2 h-11 rounded-lg bg-slate-950 border border-slate-700 cursor-pointer"
+                  />
                 </div>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-xs font-black uppercase text-slate-300 mb-1">
+                  Escudo
+                </label>
+                <label className="block cursor-pointer bg-slate-950 hover:bg-slate-800 text-white text-xs font-black uppercase py-3 px-2 rounded-xl border-2 border-slate-700 text-center">
+                  {escudoUrl ? "✓ Escudo" : "Subir"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) comprimirImagen(f, setEscudoUrl);
+                    }}
+                    className="hidden"
+                  />
+                </label>
               </div>
             </div>
 
@@ -575,7 +553,7 @@ export default function ConfiguracionPage() {
                     className="w-5 h-5 accent-yellow-400"
                   />
                   <span className="text-xs font-black uppercase text-amber-300">
-                    ★ Tiene Prioridad Exclusiva sobre su Estadio (Ej: Paso Ancho)
+                    ★ Prioridad Exclusiva en su Estadio (Ej: Paso Ancho)
                   </span>
                 </label>
               </div>
@@ -623,61 +601,90 @@ export default function ConfiguracionPage() {
             </button>
           </form>
 
-          {/* Listado de Clubes con Editar y Eliminar */}
+          {/* Buscador de Clubes */}
+          <div className="flex justify-between items-center">
+            <span className="text-xs font-black uppercase text-slate-300">
+              Clubes Registrados ({clubes.length})
+            </span>
+            <input
+              type="text"
+              placeholder="🔍 Filtrar club..."
+              value={busquedaClubes}
+              onChange={(e) => setBusquedaClubes(e.target.value)}
+              className="bg-slate-900 text-white border border-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold"
+            />
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {clubes.map((c) => (
-              <div
-                key={c.id}
-                className="bg-slate-900 p-4 rounded-2xl border-2 border-slate-800 flex justify-between items-center gap-3"
-              >
-                <div className="flex items-center gap-3">
-                  {c.escudoUrl ? (
-                    <img
-                      src={c.escudoUrl}
-                      alt={c.nombre}
-                      className="w-12 h-12 rounded-xl object-contain bg-slate-950 p-1 border border-slate-700"
-                    />
-                  ) : (
-                    <div
-                      style={{ backgroundColor: c.colorPrimario }}
-                      className="w-12 h-12 rounded-xl flex items-center justify-center font-black text-white border border-white"
-                    >
-                      {c.nombre.slice(0, 2).toUpperCase()}
-                    </div>
-                  )}
-                  <div>
-                    <h3 className="font-black text-white text-sm">
-                      {c.nombre}{" "}
-                      {c.prioridadCancha && (
-                        <span className="text-[10px] bg-yellow-400 text-black px-2 py-0.5 rounded ml-1">
-                          ★ Prioridad Cancha
-                        </span>
+            {clubes
+              .filter((c) =>
+                c.nombre.toLowerCase().includes(busquedaClubes.toLowerCase())
+              )
+              .map((c) => (
+                <div
+                  key={c.id}
+                  className="bg-slate-900 p-4 rounded-2xl border-2 border-slate-800 flex justify-between items-center gap-3"
+                >
+                  <div className="flex items-center gap-3">
+                    {c.escudoUrl ? (
+                      <img
+                        src={c.escudoUrl}
+                        alt={c.nombre}
+                        className="w-12 h-12 rounded-xl object-contain bg-slate-950 p-1 border border-slate-700"
+                      />
+                    ) : (
+                      <div
+                        style={{ backgroundColor: c.colorPrimario }}
+                        className="w-12 h-12 rounded-xl flex items-center justify-center font-black text-white border border-white"
+                      >
+                        {c.nombre.slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="font-black text-white text-sm">
+                        {c.nombre}
+                      </h3>
+                      <p className="text-xs font-bold text-emerald-400">
+                        📍 {c.canchaLocal}
+                      </p>
+                      {c.instagramUrl && (
+                        <a
+                          href={
+                            c.instagramUrl.startsWith("http")
+                              ? c.instagramUrl
+                              : `https://instagram.com/${c.instagramUrl.replace(
+                                  /^@/,
+                                  ""
+                                )}`
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[11px] font-black text-pink-400 hover:underline"
+                        >
+                          📸 {c.instagramUrl} ↗
+                        </a>
                       )}
-                    </h3>
-                    <p className="text-xs font-bold text-emerald-400">
-                      📍 {c.canchaLocal} • {(c.series || []).length} series
-                    </p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => cargarClubParaEditar(c)}
+                      className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-black uppercase"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => eliminarClubCRUD(c)}
+                      className="bg-slate-950 hover:bg-red-950 text-red-400 border border-slate-800 px-3 py-1.5 rounded-lg text-xs font-black uppercase"
+                    >
+                      Borrar
+                    </button>
                   </div>
                 </div>
-
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => cargarClubParaEditar(c)}
-                    className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-black uppercase"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => eliminarClubCRUD(c)}
-                    className="bg-slate-950 hover:bg-red-950 text-red-400 border border-slate-800 px-3 py-1.5 rounded-lg text-xs font-black uppercase"
-                  >
-                    Borrar
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
       )}
@@ -689,26 +696,11 @@ export default function ConfiguracionPage() {
             onSubmit={guardarJugadorCRUD}
             className="bg-slate-900 p-5 rounded-2xl border-2 border-slate-800 space-y-4"
           >
-            <div className="flex justify-between items-center">
-              <h2 className="text-base font-black text-yellow-400 uppercase">
-                {jugadorEditandoId
-                  ? `Editando Jugador: ${nombreJug}`
-                  : "Inscribir Jugador en Cualquier Club y Serie"}
-              </h2>
-              {jugadorEditandoId && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setJugadorEditandoId(null);
-                    setNombreJug("");
-                    setRutJug("");
-                  }}
-                  className="text-xs font-black text-slate-300 bg-slate-950 px-3 py-1 rounded border border-slate-700"
-                >
-                  Cancelar Edición
-                </button>
-              )}
-            </div>
+            <h2 className="text-base font-black text-yellow-400 uppercase">
+              {jugadorEditandoId
+                ? `Editando Jugador: ${nombreJug}`
+                : "Inscribir Jugador en Cualquier Club y Serie"}
+            </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
               <div>
@@ -781,9 +773,13 @@ export default function ConfiguracionPage() {
 
           <div className="bg-slate-900 p-5 rounded-2xl border-2 border-slate-800 space-y-4">
             <div className="flex flex-wrap justify-between items-center gap-3">
-              <span className="text-xs font-black uppercase text-slate-300">
-                Filtrar Padrón por Club:
-              </span>
+              <input
+                type="text"
+                placeholder="🔍 Buscar jugador por nombre o RUT..."
+                value={busquedaJugadores}
+                onChange={(e) => setBusquedaJugadores(e.target.value)}
+                className="bg-slate-950 text-white border border-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold w-72"
+              />
               <select
                 value={filtroClubJug}
                 onChange={(e) => setFiltroClubJug(e.target.value)}
@@ -812,10 +808,18 @@ export default function ConfiguracionPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-800">
                   {jugadores
-                    .filter(
-                      (j) =>
-                        filtroClubJug === "TODOS" || j.clubId === filtroClubJug
-                    )
+                    .filter((j) => {
+                      if (
+                        filtroClubJug !== "TODOS" &&
+                        j.clubId !== filtroClubJug
+                      )
+                        return false;
+                      const q = busquedaJugadores.toLowerCase();
+                      return (
+                        j.nombre.toLowerCase().includes(q) ||
+                        (j.rut || "").toLowerCase().includes(q)
+                      );
+                    })
                     .map((j) => (
                       <tr key={j.id} className="hover:bg-slate-800/40">
                         <td className="p-3 font-black text-white">{j.nombre}</td>
@@ -876,19 +880,14 @@ export default function ConfiguracionPage() {
           onSubmit={guardarTarifarioOficial}
           className="bg-slate-900 p-5 sm:p-6 rounded-2xl border-2 border-slate-800 space-y-6"
         >
-          <div className="border-b-2 border-slate-800 pb-3">
-            <h2 className="text-lg font-black text-yellow-400 uppercase">
-              Configuración de Valores de Sanciones, Tarjetas, Cuotas y Boletos
-            </h2>
-            <p className="text-xs font-bold text-slate-400">
-              Cualquier cambio aquí actualiza inmediatamente los cobros automáticos de la Planilla Arbitral y del Módulo de Finanzas.
-            </p>
-          </div>
+          <h2 className="text-lg font-black text-yellow-400 uppercase border-b-2 border-slate-800 pb-3">
+            Configuración de Valores de Sanciones, Tarjetas, Cuotas y Boletos
+          </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
               <label className="block text-xs font-black uppercase text-yellow-400 mb-1">
-                Tarjeta Amarilla (CLP $)
+                Tarjeta Amarilla ($)
               </label>
               <input
                 type="number"
@@ -906,39 +905,7 @@ export default function ConfiguracionPage() {
 
             <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
               <label className="block text-xs font-black uppercase text-red-400 mb-1">
-                Roja por Doble Amarilla (CLP $ / Fechas)
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  step={1000}
-                  value={tarifario.multaDobleAmarilla}
-                  onChange={(e) =>
-                    setTarifario({
-                      ...tarifario,
-                      multaDobleAmarilla: Number(e.target.value),
-                    })
-                  }
-                  className="flex-1 bg-slate-900 text-white border border-slate-700 p-2.5 rounded-lg font-black"
-                />
-                <input
-                  type="number"
-                  min={1}
-                  value={tarifario.fechasDobleAmarilla}
-                  onChange={(e) =>
-                    setTarifario({
-                      ...tarifario,
-                      fechasDobleAmarilla: Number(e.target.value),
-                    })
-                  }
-                  className="w-20 bg-slate-900 text-yellow-400 border border-slate-700 p-2.5 rounded-lg font-black text-center"
-                />
-              </div>
-            </div>
-
-            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
-              <label className="block text-xs font-black uppercase text-red-400 mb-1">
-                Roja Juego Brusco (CLP $ / Fechas)
+                Roja Juego Brusco ($ / Fechas)
               </label>
               <div className="flex gap-2">
                 <input
@@ -970,7 +937,7 @@ export default function ConfiguracionPage() {
 
             <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
               <label className="block text-xs font-black uppercase text-red-400 mb-1">
-                Roja Agresión Verbal (CLP $ / Fechas)
+                Roja Agresión Verbal ($ / Fechas)
               </label>
               <div className="flex gap-2">
                 <input
@@ -1002,7 +969,7 @@ export default function ConfiguracionPage() {
 
             <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
               <label className="block text-xs font-black uppercase text-red-400 mb-1">
-                Roja Agresión Física (CLP $ / Fechas)
+                Roja Agresión Física ($ / Fechas)
               </label>
               <div className="flex gap-2">
                 <input
@@ -1034,7 +1001,7 @@ export default function ConfiguracionPage() {
 
             <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
               <label className="block text-xs font-black uppercase text-emerald-400 mb-1">
-                Cuota Inscripción 1 y 2 (CLP $)
+                Cuota Inscripción 1 y 2 ($)
               </label>
               <div className="flex gap-2">
                 <input
@@ -1065,44 +1032,8 @@ export default function ConfiguracionPage() {
             </div>
 
             <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
-              <label className="block text-xs font-black uppercase text-blue-400 mb-1">
-                Multa Inasistencia Reunión (CLP $)
-              </label>
-              <input
-                type="number"
-                step={1000}
-                value={tarifario.multaInasistenciaReunion}
-                onChange={(e) =>
-                  setTarifario({
-                    ...tarifario,
-                    multaInasistenciaReunion: Number(e.target.value),
-                  })
-                }
-                className="w-full bg-slate-900 text-white border border-slate-700 p-2.5 rounded-lg font-black"
-              />
-            </div>
-
-            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
-              <label className="block text-xs font-black uppercase text-blue-400 mb-1">
-                Multa No Presentar Serie (CLP $)
-              </label>
-              <input
-                type="number"
-                step={1000}
-                value={tarifario.multaNoPresentacionSerie}
-                onChange={(e) =>
-                  setTarifario({
-                    ...tarifario,
-                    multaNoPresentacionSerie: Number(e.target.value),
-                  })
-                }
-                className="w-full bg-slate-900 text-white border border-slate-700 p-2.5 rounded-lg font-black"
-              />
-            </div>
-
-            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
               <label className="block text-xs font-black uppercase text-yellow-400 mb-1">
-                Valor Boleto Transmisión En Vivo ($)
+                Valor Boleto En Vivo ($)
               </label>
               <input
                 type="number"
@@ -1131,72 +1062,6 @@ export default function ConfiguracionPage() {
       {/* ================= PESTAÑA 4: CRUD AUSPICIADORES Y SISTEMA ================= */}
       {tabActiva === "AUSPICIADORES_SISTEMA" && (
         <div className="space-y-6">
-          {/* Identidad Asociación */}
-          <div className="bg-slate-900 p-5 rounded-2xl border-2 border-slate-800 flex flex-wrap justify-between items-center gap-4">
-            <div className="flex items-center gap-4">
-              {logoAsociacion ? (
-                <img
-                  src={logoAsociacion}
-                  alt="Logo Asociación"
-                  className="w-16 h-16 rounded-xl object-contain bg-slate-950 p-1.5 border border-blue-500"
-                />
-              ) : (
-                <div className="w-16 h-16 rounded-xl bg-blue-600 flex items-center justify-center font-black text-xl">
-                  ASF
-                </div>
-              )}
-              <div>
-                <h3 className="text-lg font-black text-white">
-                  Logo e Identidad de la Asociación
-                </h3>
-                <p className="text-xs font-bold text-slate-400">
-                  Se muestra en la portada principal de Futbian.pro
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <label className="cursor-pointer bg-blue-600 hover:bg-blue-500 text-white font-black uppercase px-4 py-2.5 rounded-xl border border-white text-xs">
-                Subir / Cambiar Logo
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) {
-                      comprimirImagen(f, async (dataUrl) => {
-                        setLogoAsociacion(dataUrl);
-                        await setDoc(
-                          doc(db, "configuracion", "identidad_asociacion"),
-                          { logoAsociacionUrl: dataUrl },
-                          { merge: true }
-                        );
-                      });
-                    }
-                  }}
-                  className="hidden"
-                />
-              </label>
-              {logoAsociacion && (
-                <button
-                  type="button"
-                  onClick={async () => {
-                    setLogoAsociacion("");
-                    await setDoc(
-                      doc(db, "configuracion", "identidad_asociacion"),
-                      { logoAsociacionUrl: "" },
-                      { merge: true }
-                    );
-                  }}
-                  className="bg-slate-950 text-red-400 border border-slate-700 px-3 py-2.5 rounded-xl text-xs font-black uppercase"
-                >
-                  Quitar Logo
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* CRUD Auspiciadores */}
           <form
             onSubmit={guardarAuspiciadorCRUD}
             className="bg-slate-900 p-5 rounded-2xl border-2 border-slate-800 space-y-4"
@@ -1224,7 +1089,7 @@ export default function ConfiguracionPage() {
 
               <div>
                 <label className="block text-xs font-black uppercase text-slate-300 mb-1">
-                  Sitio Web / Red Social
+                  Sitio Web / Instagram
                 </label>
                 <input
                   type="text"
@@ -1306,17 +1171,13 @@ export default function ConfiguracionPage() {
             </div>
           </form>
 
-          {/* Recomendación: Reinicio de Temporada desde 0 */}
           <div className="bg-slate-900 p-5 rounded-2xl border-2 border-red-500/50 flex flex-wrap justify-between items-center gap-4">
             <div>
-              <span className="text-xs font-black uppercase text-red-400 block">
-                HERRAMIENTA DE INICIO DE TEMPORADA
-              </span>
               <h3 className="text-base font-black text-white">
                 Reiniciar Puntos y Goles del Campeonato a Cero
               </h3>
               <p className="text-xs font-bold text-slate-400">
-                Conserva todos los clubes, escudos y jugadores, pero deja en 0 puntos, goles y suspensiones para arrancar un torneo desde 0.
+                Conserva todos los clubes, escudos y jugadores, pero deja en 0 puntos, goles y suspensiones.
               </p>
             </div>
             <button

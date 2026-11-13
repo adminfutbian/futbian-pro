@@ -27,18 +27,28 @@ const MATRIZ_PERMISOS_POR_ROL: Record<
   },
   delegado: {
     etiqueta: "Delegado de Club",
-    descripcion: "Ve posiciones, goleadores, fixture y administra exclusivamente su Club (nómina y series).",
+    descripcion: "Ve posiciones, goleadores, fixture y administra exclusivamente su Club.",
     permisos: ["ver:posiciones", "ver:goleadores", "ver:fixture", "crud:mi-club"],
+  },
+  turno: {
+    etiqueta: "Director de Turno (Mesa)",
+    descripcion: "Inicia el reloj del partido, anota goles/tarjetas con minutaje y envía la planilla para ratificación del árbitro.",
+    permisos: ["ver:fixture", "llenar:planilla-turno"],
   },
   arbitro: {
     etiqueta: "Árbitro Oficial",
-    descripcion: "Opera la Planilla Arbitral en cancha, registra goles, tarjetas y sella actas SHA-256.",
-    permisos: ["ver:fixture", "crud:planilla-arbitral"],
+    descripcion: "Revisa y ratifica con su PIN/Firma las planillas llenadas por el Turno y sella el acta SHA-256.",
+    permisos: ["ver:fixture", "ratificar:planilla-arbitral"],
+  },
+  multimedia: {
+    etiqueta: "Encargado Multimedia y Streaming",
+    descripcion: "Configura los partidos En Vivo (enunciado, URL de transmisión, marcador) y publica anuncios publicitarios.",
+    permisos: ["crud:multimedia-vivo", "crud:publicidad-inicio"],
   },
   adminasociacion: {
     etiqueta: "Administrador Asociación",
     descripcion:
-      "Configura todo desde 0 (CRUD Clubes, Jugadores, Sanciones, Auspiciadores, Finanzas, Torneos). No altera actas arbitrales ni tablas cerradas.",
+      "Configura todo desde 0 (CRUD Clubes, Jugadores, Sanciones, Auspiciadores, Finanzas, Torneos). No modifica informes arbitrales ni tablas cerradas.",
     permisos: [
       "crud:clubes",
       "crud:jugadores",
@@ -59,6 +69,7 @@ const MATRIZ_PERMISOS_POR_ROL: Record<
 export default function GestionUsuariosPage() {
   const [usuarios, setUsuarios] = useState<UserProfile[]>([]);
   const [clubes, setClubes] = useState<Club[]>([]);
+  const [busquedaUsuario, setBusquedaUsuario] = useState("");
 
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
@@ -107,7 +118,6 @@ export default function GestionUsuariosPage() {
     };
   }, [clubAsignadoId]);
 
-  // Crear usuario en Firebase Auth usando instancia secundaria para no cerrar la sesión del Admin
   const crearNuevoPerfilUsuario = async (e: React.FormEvent) => {
     e.preventDefault();
     setMensaje("");
@@ -169,7 +179,7 @@ export default function GestionUsuariosPage() {
       );
 
       setMensaje(
-        `✓ Perfil "${nombre}" (${email}) creado con rol ${rolSeleccionado.toUpperCase()} y permisos activados.`
+        `✓ Perfil "${nombre}" (${email}) creado con rol ${rolSeleccionado.toUpperCase()}.`
       );
       setNombre("");
       setEmail("");
@@ -177,8 +187,7 @@ export default function GestionUsuariosPage() {
     } catch (err: any) {
       console.error(err);
       setErrorMsg(
-        err?.message ||
-          "Error al crear la cuenta. Verifique que el correo no esté registrado previamente."
+        err?.message || "Error al crear la cuenta. Verifique el correo."
       );
     } finally {
       if (secondaryApp) {
@@ -210,11 +219,6 @@ export default function GestionUsuariosPage() {
     await updateDoc(doc(db, "users", u.uid), {
       clubId: nuevoClubId,
     });
-    await registrarAccionAuditoria(
-      "USUARIOS_Y_PERFILES",
-      "ASIGNAR_CLUB_DELEGADO",
-      `Se asignó el club ${nuevoClubId} al usuario ${u.email}`
-    );
   };
 
   const eliminarPerfil = async (u: UserProfile) => {
@@ -222,22 +226,30 @@ export default function GestionUsuariosPage() {
     await registrarAccionAuditoria(
       "USUARIOS_Y_PERFILES",
       "ELIMINAR_PERFIL",
-      `Se eliminó el perfil de acceso de ${u.email}`
+      `Se eliminó el perfil de ${u.email}`
     );
   };
 
+  const usuariosFiltrados = usuarios.filter((u) => {
+    const q = busquedaUsuario.toLowerCase();
+    return (
+      u.nombre.toLowerCase().includes(q) ||
+      u.email.toLowerCase().includes(q) ||
+      u.rol.toLowerCase().includes(q)
+    );
+  });
+
   return (
     <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-6">
-      {/* Cabecera */}
       <div className="bg-slate-900 p-5 sm:p-6 rounded-2xl border-2 border-slate-800">
-        <span className="bg-blue-600 text-white text-xs font-black px-2.5 py-1 rounded uppercase tracking-wider">
+        <span className="bg-blue-600 text-white text-xs font-black px-2.5 py-1 rounded uppercase">
           CONTROL DE IDENTIDADES Y ACCESOS (RBAC)
         </span>
         <h1 className="text-2xl font-black text-white mt-2">
           Creador de Perfiles y Asignación de Permisos
         </h1>
         <p className="text-xs font-bold text-slate-400 mt-0.5">
-          Cree cuentas para Hinchas, Delegados de Club, Árbitros, Admin Asociación y Admin General sin cerrar su sesión actual.
+          Cree cuentas para Hinchas, Delegados, Turnos de Mesa, Árbitros, Multimedia, Admin Asociación y Admin General.
         </p>
       </div>
 
@@ -252,7 +264,6 @@ export default function GestionUsuariosPage() {
         </div>
       )}
 
-      {/* Formulario Creador de Perfiles */}
       <form
         onSubmit={crearNuevoPerfilUsuario}
         className="bg-slate-900 p-5 sm:p-6 rounded-2xl border-2 border-slate-800 space-y-5"
@@ -317,7 +328,9 @@ export default function GestionUsuariosPage() {
             >
               <option value="hincha">HINCHA (Tablas, Goleadores, Fixture, En Vivo)</option>
               <option value="delegado">DELEGADO (Representante de un Club específico)</option>
-              <option value="arbitro">ÁRBITRO (Planilla e Informes Arbitrales)</option>
+              <option value="turno">TURNO (Llena planilla y cronómetro en cancha)</option>
+              <option value="arbitro">ÁRBITRO (Ratifica planilla del Turno y sella SHA-256)</option>
+              <option value="multimedia">MULTIMEDIA (Configura En Vivo y Publicidad)</option>
               <option value="adminasociacion">
                 ADMIN ASOCIACIÓN (Configura todo desde 0; no edita actas ni tablas)
               </option>
@@ -349,7 +362,6 @@ export default function GestionUsuariosPage() {
           )}
         </div>
 
-        {/* Resumen visual de permisos que se otorgarán */}
         {MATRIZ_PERMISOS_POR_ROL[rolSeleccionado] && (
           <div className="bg-slate-950 p-4 rounded-xl border-2 border-slate-800 space-y-2">
             <span className="text-xs font-black text-blue-400 uppercase block">
@@ -376,18 +388,23 @@ export default function GestionUsuariosPage() {
           disabled={cargando}
           className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider py-4 rounded-xl border-2 border-white shadow-lg text-sm transition"
         >
-          {cargando
-            ? "Creando Cuenta y Asignando Permisos..."
-            : "🔐 Crear Perfil y Habilitar Permisos"}
+          {cargando ? "Creando Cuenta..." : "🔐 Crear Perfil y Habilitar Permisos"}
         </button>
       </form>
 
-      {/* Tabla CRUD de Usuarios Registrados */}
+      {/* Tabla de Usuarios con Filtro de Búsqueda */}
       <div className="bg-slate-900 rounded-2xl border-2 border-slate-800 overflow-hidden shadow-xl">
-        <div className="p-4 bg-slate-950 border-b-2 border-slate-800 flex justify-between items-center">
+        <div className="p-4 bg-slate-950 border-b-2 border-slate-800 flex flex-wrap justify-between items-center gap-3">
           <h2 className="text-sm font-black uppercase text-white">
-            Padrón de Perfiles Registrados ({usuarios.length})
+            Padrón de Perfiles Registrados ({usuariosFiltrados.length})
           </h2>
+          <input
+            type="text"
+            placeholder="🔍 Buscar usuario por nombre, correo o rol..."
+            value={busquedaUsuario}
+            onChange={(e) => setBusquedaUsuario(e.target.value)}
+            className="bg-slate-900 text-white border border-slate-700 px-3.5 py-1.5 rounded-xl text-xs font-bold w-72"
+          />
         </div>
 
         <div className="overflow-x-auto">
@@ -396,12 +413,12 @@ export default function GestionUsuariosPage() {
               <tr className="bg-slate-950 border-b-2 border-slate-800 text-[11px] font-black uppercase text-slate-400">
                 <th className="p-3.5">Nombre / Correo</th>
                 <th className="p-3.5">Perfil Asignado</th>
-                <th className="p-3.5">Club Asociado (Delegado / Fan)</th>
+                <th className="p-3.5">Club Asociado</th>
                 <th className="p-3.5 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800 text-xs sm:text-sm">
-              {usuarios.map((u) => (
+              {usuariosFiltrados.map((u) => (
                 <tr key={u.uid} className="hover:bg-slate-800/40">
                   <td className="p-3.5">
                     <p className="font-black text-white">{u.nombre}</p>
@@ -417,7 +434,9 @@ export default function GestionUsuariosPage() {
                     >
                       <option value="hincha">hincha</option>
                       <option value="delegado">delegado</option>
+                      <option value="turno">turno</option>
                       <option value="arbitro">arbitro</option>
+                      <option value="multimedia">multimedia</option>
                       <option value="adminasociacion">adminasociacion</option>
                       <option value="admingeneral">admingeneral</option>
                     </select>

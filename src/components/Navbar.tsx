@@ -36,6 +36,8 @@ export default function Navbar() {
   const esAdminAsociacion = rol === "adminasociacion";
   const esDelegado = rol === "delegado";
   const esArbitro = rol === "arbitro";
+  const esTurno = rol === "turno";
+  const esMultimedia = rol === "multimedia";
 
   return (
     <nav className="bg-slate-900 border-b-2 border-slate-800 text-white px-6 py-4 flex flex-wrap justify-between items-center gap-4 shadow-md">
@@ -85,13 +87,31 @@ export default function Navbar() {
           </Link>
         )}
 
-        {/* Ruta Planilla Arbitral (AdminAsociacion en modo lectura, Arbitro y AdminGeneral editan) */}
-        {(esArbitro || esAdminAsociacion || esAdminGeneral) && (
+        {/* Ruta Planilla (Turno llena, Árbitro ratifica, AdminAsociacion audita en lectura, AdminGeneral edita) */}
+        {(esTurno || esArbitro || esAdminAsociacion || esAdminGeneral) && (
+          <>
+            <Link
+              href="/dashboard/planilla"
+              className="text-yellow-400 hover:text-yellow-300"
+            >
+              Planilla
+            </Link>
+            <Link
+              href="/dashboard/liguilla"
+              className="text-yellow-400 hover:text-yellow-300"
+            >
+              Liguilla
+            </Link>
+          </>
+        )}
+
+        {/* Ruta Perfil Multimedia (Configuración En Vivo) */}
+        {(esMultimedia || esAdminAsociacion || esAdminGeneral) && (
           <Link
-            href="/dashboard/planilla"
-            className="text-yellow-400 hover:text-yellow-300"
+            href="/admin/multimedia"
+            className="text-pink-400 hover:text-pink-300"
           >
-            Planilla
+            Config. En Vivo
           </Link>
         )}
 
