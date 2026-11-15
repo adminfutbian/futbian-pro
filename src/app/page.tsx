@@ -25,7 +25,6 @@ export default function HomePage() {
   const [auspiciadores, setAuspiciadores] = useState<Auspiciador[]>([]);
   const [anuncios, setAnuncios] = useState<AnuncioPublicitario[]>([]);
 
-  // Estados para crear un anuncio en el apartado de Publicidad
   const [tituloAnuncio, setTituloAnuncio] = useState("");
   const [descAnuncio, setDescAnuncio] = useState("");
   const [linkAnuncio, setLinkAnuncio] = useState("");
@@ -184,57 +183,63 @@ export default function HomePage() {
   const maxGolesClub = Math.max(...clubes.map((c) => c.goles_favor), 1);
 
   return (
-    <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-6">
-      {/* Hero Banner */}
-      <div className="bg-slate-900 rounded-2xl border-2 border-slate-800 p-6 sm:p-8 shadow-2xl flex flex-col lg:flex-row justify-between items-center gap-6">
-        <div className="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
+    <div className="p-3 sm:p-6 max-w-6xl mx-auto space-y-6 overflow-x-hidden">
+      {/* Hero Banner Responsivo */}
+      <div className="bg-slate-900 rounded-2xl border-2 border-slate-800 p-5 sm:p-8 shadow-2xl flex flex-col lg:flex-row justify-between items-center gap-6">
+        <div className="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left min-w-0">
           {logoAsociacion ? (
             <img
               src={logoAsociacion}
               alt="Logo Asociación"
-              className="w-24 h-24 rounded-2xl object-contain bg-slate-950 border-2 border-blue-500 p-2"
+              className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-contain bg-white border-2 border-blue-500 p-1.5 shrink-0 shadow-lg"
             />
           ) : (
-            <div className="w-24 h-24 rounded-2xl bg-blue-600 border-2 border-white flex items-center justify-center font-black text-3xl text-white">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-blue-600 border-2 border-white flex items-center justify-center font-black text-2xl sm:text-3xl text-white shrink-0">
               ASF
             </div>
           )}
 
-          <div>
-            <span className="inline-block bg-emerald-950 text-emerald-300 border border-emerald-500 text-xs font-black px-3 py-1 rounded uppercase mb-2">
+          <div className="min-w-0">
+            <span className="inline-block bg-emerald-950 text-emerald-300 border border-emerald-500 text-[10px] sm:text-xs font-black px-3 py-1 rounded-lg uppercase mb-2">
               📅 EN VIVO AL DÍA: {fechaHoy}
             </span>
-            <h1 className="text-3xl sm:text-4xl font-black text-white">
+            <h1 className="text-2xl sm:text-4xl font-black text-white leading-tight">
               Asociación de Fútbol San Fabián
             </h1>
-            <p className="text-sm font-bold text-slate-400 mt-1">
+            <p className="text-xs sm:text-sm font-bold text-slate-400 mt-1.5">
               Estadísticas en tiempo real, redes oficiales de los clubes, comunidad Hazte Fan y transmisión en vivo.
             </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap justify-center gap-3 shrink-0">
+        <div className="flex flex-wrap justify-center gap-3 w-full lg:w-auto shrink-0">
           <Link
             href="/hazte-fan"
-            className="bg-yellow-400 hover:bg-yellow-300 text-black font-black uppercase px-5 py-4 rounded-2xl border-2 border-white shadow-xl text-xs sm:text-sm"
+            className="flex-1 sm:flex-initial text-center bg-yellow-400 hover:bg-yellow-300 text-black font-black uppercase px-5 py-3.5 rounded-2xl border-2 border-white shadow-xl text-xs sm:text-sm transition"
           >
             ⭐ ¡Hazte Fan!
           </Link>
           <Link
             href="/en-vivo"
-            className="bg-red-600 hover:bg-red-500 text-white font-black uppercase px-5 py-4 rounded-2xl border-2 border-white shadow-xl text-xs sm:text-sm animate-pulse"
+            className="flex-1 sm:flex-initial text-center bg-red-600 hover:bg-red-500 text-white font-black uppercase px-5 py-3.5 rounded-2xl border-2 border-white shadow-xl text-xs sm:text-sm animate-pulse transition"
           >
             🔴 Ver En Vivo
           </Link>
         </div>
       </div>
 
-      {/* DIRECTORIO DE CLUBES CON BOTÓN DIRECTO A SU INSTAGRAM */}
-      <div className="bg-slate-900 p-5 rounded-2xl border-2 border-slate-800 space-y-3">
-        <h2 className="text-xs font-black uppercase tracking-widest text-blue-400">
-          🌐 Clubes Federados y Acceso Directo a Instagram Oficial
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+      {/* DIRECTORIO DE CLUBES REDISEÑADO (100% RESPONSIVO SIN DESCUADRES NI TEXTO CORTADO) */}
+      <div className="bg-slate-900 p-4 sm:p-6 rounded-2xl border-2 border-slate-800 space-y-4">
+        <div className="flex flex-wrap justify-between items-center gap-2 border-b-2 border-slate-800 pb-3">
+          <h2 className="text-xs sm:text-sm font-black uppercase tracking-widest text-blue-400">
+            🌐 Clubes Federados y Acceso Directo a Instagram Oficial ({clubes.length})
+          </h2>
+          <span className="text-[11px] font-bold text-slate-400">
+            Toque el botón de cada club para visitar su red oficial
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {clubes.map((c) => {
             const igHref = c.instagramUrl
               ? c.instagramUrl.startsWith("http")
@@ -244,43 +249,56 @@ export default function HomePage() {
             return (
               <div
                 key={c.id}
-                className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 flex justify-between items-center gap-2"
+                className="bg-slate-950 p-4 rounded-2xl border-2 border-slate-800 hover:border-slate-700 flex flex-col justify-between gap-3.5 transition shadow-md"
               >
-                <div className="flex items-center gap-2.5">
+                {/* Fila Superior: Escudo + Nombre Completo + Cancha */}
+                <div className="flex items-center gap-3.5 min-w-0">
                   {c.escudoUrl ? (
                     <img
                       src={c.escudoUrl}
                       alt={c.nombre}
-                      className="w-10 h-10 rounded-lg object-contain bg-slate-900 p-1"
+                      className="w-12 h-12 rounded-xl object-contain bg-slate-900 p-1 border border-slate-700 shrink-0"
                     />
                   ) : (
                     <div
                       style={{ backgroundColor: c.colorPrimario || "#2563eb" }}
-                      className="w-10 h-10 rounded-lg flex items-center justify-center font-black text-xs text-white"
+                      className="w-12 h-12 rounded-xl flex items-center justify-center font-black text-sm text-white shrink-0 border border-white/30"
                     >
                       {c.nombre.slice(0, 2).toUpperCase()}
                     </div>
                   )}
-                  <div>
-                    <p className="font-black text-white text-xs sm:text-sm">
+
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-black text-white text-base leading-snug truncate">
                       {c.nombre}
-                    </p>
-                    <span className="text-[10px] font-bold text-slate-400">
+                    </h3>
+                    <p className="text-xs font-bold text-slate-400 truncate mt-0.5">
                       📍 {c.canchaLocal}
-                    </span>
+                    </p>
                   </div>
                 </div>
 
-                {igHref && (
-                  <a
-                    href={igHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-gradient-to-r from-pink-600 to-amber-500 text-white text-[10px] font-black uppercase px-2.5 py-1.5 rounded-lg border border-white/40 shrink-0"
-                  >
-                    📸 Instagram ↗
-                  </a>
-                )}
+                {/* Fila Inferior: Estadística Rápida + Botón Instagram sin aplastar el texto */}
+                <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-slate-900">
+                  <span className="text-[11px] font-black text-yellow-400 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">
+                    {c.puntos} PTS • {c.goles_favor} GF
+                  </span>
+
+                  {igHref ? (
+                    <a
+                      href={igHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-gradient-to-r from-pink-600 to-amber-500 hover:from-pink-500 hover:to-amber-400 text-white text-[11px] font-black uppercase px-3.5 py-1.5 rounded-xl border border-white/40 shrink-0 shadow transition"
+                    >
+                      📸 Instagram ↗
+                    </a>
+                  ) : (
+                    <span className="text-[11px] font-bold text-slate-600">
+                      Sin red registrada
+                    </span>
+                  )}
+                </div>
               </div>
             );
           })}
@@ -288,38 +306,36 @@ export default function HomePage() {
       </div>
 
       {/* APARTADO DE PUBLICIDAD Y ANUNCIOS DE AUSPICIADORES */}
-      <div className="bg-slate-900 p-5 sm:p-6 rounded-2xl border-2 border-yellow-400/60 space-y-4">
-        <div className="flex flex-wrap justify-between items-center gap-2 border-b-2 border-slate-800 pb-3">
-          <div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-yellow-400 block">
-              ESPACIO COMERCIAL Y COMUNICADOS
-            </span>
-            <h2 className="text-lg font-black text-white uppercase">
-              📢 Cartelera de Publicidad y Anuncios de Auspiciadores
-            </h2>
-          </div>
+      <div className="bg-slate-900 p-4 sm:p-6 rounded-2xl border-2 border-yellow-400/60 space-y-4">
+        <div className="border-b-2 border-slate-800 pb-3">
+          <span className="text-[10px] font-black uppercase tracking-widest text-yellow-400 block">
+            ESPACIO COMERCIAL Y COMUNICADOS
+          </span>
+          <h2 className="text-base sm:text-lg font-black text-white uppercase">
+            📢 Cartelera de Publicidad y Anuncios de Auspiciadores
+          </h2>
         </div>
 
         {puedeEditarPublicidad && (
           <form
             onSubmit={publicarAnuncioPublicitario}
-            className="bg-slate-950 p-4 rounded-xl border border-slate-800 grid grid-cols-1 md:grid-cols-12 gap-3 items-end"
+            className="bg-slate-950 p-4 rounded-xl border border-slate-800 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end"
           >
-            <div className="md:col-span-3">
+            <div className="lg:col-span-3">
               <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">
                 Título del Anuncio / Promo
               </label>
               <input
                 type="text"
-                placeholder="Ej: 20% Dcto en Ferretería San Fabián"
+                placeholder="Ej: 20% Dcto Ferretería"
                 value={tituloAnuncio}
                 onChange={(e) => setTituloAnuncio(e.target.value)}
-                className="w-full bg-slate-900 text-white border border-slate-700 p-2 rounded-lg text-xs font-bold"
+                className="w-full bg-slate-900 text-white border border-slate-700 p-2.5 rounded-lg text-xs font-bold"
                 required
               />
             </div>
 
-            <div className="md:col-span-4">
+            <div className="lg:col-span-4">
               <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">
                 Descripción Publicitaria
               </label>
@@ -328,25 +344,25 @@ export default function HomePage() {
                 placeholder="Presentando tu cuenta Hazte Fan..."
                 value={descAnuncio}
                 onChange={(e) => setDescAnuncio(e.target.value)}
-                className="w-full bg-slate-900 text-white border border-slate-700 p-2 rounded-lg text-xs font-bold"
+                className="w-full bg-slate-900 text-white border border-slate-700 p-2.5 rounded-lg text-xs font-bold"
               />
             </div>
 
-            <div className="md:col-span-2">
+            <div className="lg:col-span-2">
               <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">
-                Link / Instagram / Web
+                Link / Instagram
               </label>
               <input
                 type="text"
                 placeholder="https://..."
                 value={linkAnuncio}
                 onChange={(e) => setLinkAnuncio(e.target.value)}
-                className="w-full bg-slate-900 text-white border border-slate-700 p-2 rounded-lg text-xs font-bold"
+                className="w-full bg-slate-900 text-white border border-slate-700 p-2.5 rounded-lg text-xs font-bold"
               />
             </div>
 
-            <div className="md:col-span-3 flex gap-2">
-              <label className="flex-1 cursor-pointer bg-slate-900 text-yellow-400 border border-slate-700 p-2 rounded-lg text-xs font-black uppercase text-center">
+            <div className="lg:col-span-3 flex gap-2">
+              <label className="flex-1 cursor-pointer bg-slate-900 text-yellow-400 border border-slate-700 p-2.5 rounded-lg text-xs font-black uppercase text-center">
                 {imgAnuncio ? "✓ Foto" : "📷 Imagen"}
                 <input
                   type="file"
@@ -360,7 +376,7 @@ export default function HomePage() {
               </label>
               <button
                 type="submit"
-                className="bg-yellow-400 text-black font-black uppercase px-3 py-2 rounded-lg text-xs"
+                className="bg-yellow-400 text-black font-black uppercase px-4 py-2.5 rounded-lg text-xs"
               >
                 + Publicar
               </button>
@@ -373,7 +389,7 @@ export default function HomePage() {
             Espacio publicitario disponible para anuncios y promociones de los auspiciadores del torneo.
           </p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {anuncios.map((an) => (
               <div
                 key={an.id}
@@ -418,7 +434,7 @@ export default function HomePage() {
                     }
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block text-center bg-blue-600 hover:bg-blue-500 text-white text-xs font-black uppercase py-2 rounded-lg border border-white/40"
+                    className="block text-center bg-blue-600 hover:bg-blue-500 text-white text-xs font-black uppercase py-2.5 rounded-lg border border-white/40"
                   >
                     Ver Promoción / Visitar ↗
                   </a>
@@ -440,8 +456,8 @@ export default function HomePage() {
             return (
               <div key={c.id} className="space-y-1">
                 <div className="flex justify-between text-xs font-black">
-                  <span>{c.nombre}</span>
-                  <span className="text-yellow-400">{c.puntos} PTS</span>
+                  <span className="truncate pr-2">{c.nombre}</span>
+                  <span className="text-yellow-400 shrink-0">{c.puntos} PTS</span>
                 </div>
                 <div className="w-full h-3.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
                   <div
@@ -469,8 +485,8 @@ export default function HomePage() {
             return (
               <div key={c.id} className="space-y-1">
                 <div className="flex justify-between text-xs font-black">
-                  <span>{c.nombre}</span>
-                  <span className="text-emerald-400">
+                  <span className="truncate pr-2">{c.nombre}</span>
+                  <span className="text-emerald-400 shrink-0">
                     {c.goles_favor} Goles
                   </span>
                 </div>
@@ -503,7 +519,7 @@ export default function HomePage() {
                   alt={aus.nombre}
                   className="h-12 object-contain"
                 />
-                <span className="text-[10px] font-black text-slate-300 mt-1">
+                <span className="text-[10px] font-black text-slate-300 mt-1 truncate w-full text-center">
                   {aus.nombre}
                 </span>
               </div>

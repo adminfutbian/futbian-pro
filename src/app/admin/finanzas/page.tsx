@@ -59,6 +59,8 @@ const CATALOGO_COBROS: {
 export default function FinanzasPage() {
   const [clubes, setClubes] = useState<Club[]>([]);
   const [cargos, setCargos] = useState<CargoFinanciero[]>([]);
+  const [ingresosTransmisiones, setIngresosTransmisiones] = useState<number>(0);
+  const [cantidadBoletos, setCantidadBoletos] = useState<number>(0);
 
   const [busquedaClub, setBusquedaClub] = useState("");
   const [busquedaLibroMayor, setBusquedaLibroMayor] = useState("");
@@ -97,9 +99,23 @@ export default function FinanzasPage() {
       }
     );
 
+    // Escuchar recaudación general por concepto de Transmisiones En Vivo
+    const unsubBoletos = onSnapshot(
+      collection(db, "boletos_vendidos"),
+      (snap) => {
+        let suma = 0;
+        snap.docs.forEach((d) => {
+          suma += Number(d.data().montoPagado || 0);
+        });
+        setIngresosTransmisiones(suma);
+        setCantidadBoletos(snap.size);
+      }
+    );
+
     return () => {
       unsubClubes();
       unsubCargos();
+      unsubBoletos();
     };
   }, []);
 
@@ -221,15 +237,22 @@ export default function FinanzasPage() {
     );
   });
 
+  const totalDeudaClubes = clubes.reduce((acc, c) => acc + c.saldoDeudor, 0);
+  const totalPagadoClubes = cargos
+    .filter((cg) => cg.estado === "PAGADO")
+    .reduce((acc, cg) => acc + cg.monto, 0);
+  const cajaGeneralAsociacion = totalPagadoClubes + ingresosTransmisiones;
+
   return (
-    <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-6">
+    <div className="p-3 sm:p-6 max-w-6xl mx-auto space-y-6">
+      {/* Cabecera */}
       <div className="bg-slate-900 p-5 sm:p-6 rounded-2xl border-2 border-slate-800 flex flex-wrap justify-between items-center gap-4">
         <div>
           <span className="bg-emerald-600 text-white text-xs font-black px-2.5 py-1 rounded uppercase">
             TESORERÍA Y LIBRO MAYOR • CU-03
           </span>
-          <h1 className="text-2xl font-black text-white mt-1">
-            Finanzas, Cuotas, Multas y Anulación de Cobros Erróneos
+          <h1 className="text-xl sm:text-2xl font-black text-white mt-1">
+            Finanzas, Ingresos por Transmisiones, Cuotas y Multas
           </h1>
         </div>
 
@@ -240,6 +263,57 @@ export default function FinanzasPage() {
         >
           📥 Descargar Archivo de Auditoría
         </button>
+      </div>
+
+      {/* RESUMEN GENERAL DE INGRESOS (INCLUYE TRANSMISIONES = $XXXXX) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-slate-900 p-5 rounded-2xl border-2 border-pink-500/60 shadow-lg">
+          <span className="text-[11px] font-black uppercase tracking-wider text-pink-400 block">
+            🔴 INGRESOS STREAMING EN VIVO
+          </span>
+          <p className="text-xl sm:text-2xl font-mono font-black text-white mt-2">
+            Transmisiones = ${ingresosTransmisiones.toLocaleString("es-CL")}
+          </p>
+          <span className="text-xs font-bold text-slate-400 mt-1 block">
+            {cantidadBoletos} boleto(s) digitales vendidos
+          </span>
+        </div>
+
+        <div className="bg-slate-900 p-5 rounded-2xl border-2 border-emerald-500/60 shadow-lg">
+          <span className="text-[11px] font-black uppercase tracking-wider text-emerald-400 block">
+            ✓ CUOTAS Y MULTAS PAGADAS
+          </span>
+          <p className="text-xl sm:text-2xl font-mono font-black text-emerald-400 mt-2">
+            Clubes = ${totalPagadoClubes.toLocaleString("es-CL")}
+          </p>
+          <span className="text-xs font-bold text-slate-400 mt-1 block">
+            Pagos conciliados en Tesorería
+          </span>
+        </div>
+
+        <div className="bg-slate-900 p-5 rounded-2xl border-2 border-red-500/60 shadow-lg">
+          <span className="text-[11px] font-black uppercase tracking-wider text-red-400 block">
+            ⏳ POR COBRAR (MOROSIDAD)
+          </span>
+          <p className="text-xl sm:text-2xl font-mono font-black text-red-400 mt-2">
+            Deuda = ${totalDeudaClubes.toLocaleString("es-CL")}
+          </p>
+          <span className="text-xs font-bold text-slate-400 mt-1 block">
+            Saldo pendiente de clubes
+          </span>
+        </div>
+
+        <div className="bg-slate-900 p-5 rounded-2xl border-2 border-yellow-400 shadow-lg">
+          <span className="text-[11px] font-black uppercase tracking-wider text-yellow-400 block">
+            💰 TOTAL CAJA ASOCIACIÓN
+          </span>
+          <p className="text-xl sm:text-2xl font-mono font-black text-yellow-400 mt-2">
+            Total = ${cajaGeneralAsociacion.toLocaleString("es-CL")}
+          </p>
+          <span className="text-xs font-bold text-slate-400 mt-1 block">
+            Transmisiones + Pagos de Clubes
+          </span>
+        </div>
       </div>
 
       {mensaje && (
@@ -419,7 +493,7 @@ export default function FinanzasPage() {
             placeholder="🔍 Buscar en Libro Mayor por club o concepto..."
             value={busquedaLibroMayor}
             onChange={(e) => setBusquedaLibroMayor(e.target.value)}
-            className="bg-slate-900 text-white border border-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold w-72"
+            className="bg-slate-900 text-white border border-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold w-full sm:w-72"
           />
         </div>
 
