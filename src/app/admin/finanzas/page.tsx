@@ -60,11 +60,9 @@ export default function FinanzasPage() {
   const [clubes, setClubes] = useState<Club[]>([]);
   const [cargos, setCargos] = useState<CargoFinanciero[]>([]);
 
-  // Buscadores en las tablas
   const [busquedaClub, setBusquedaClub] = useState("");
   const [busquedaLibroMayor, setBusquedaLibroMayor] = useState("");
 
-  // Formulario nuevo cobro
   const [clubDestinoId, setClubDestinoId] = useState<string>("TODOS");
   const [tipoCobro, setTipoCobro] = useState<TipoCargoFinanciero>(
     "CUOTA_INSCRIPCION_1"
@@ -91,8 +89,8 @@ export default function FinanzasPage() {
       collection(db, "cargos_financieros"),
       (snap) => {
         const lista: CargoFinanciero[] = snap.docs.map((d) => ({
+          ...(d.data() as Omit<CargoFinanciero, "id">),
           id: d.id,
-          ...(d.data() as CargoFinanciero),
         }));
         lista.sort((a, b) => (b.fecha || "").localeCompare(a.fecha || ""));
         setCargos(lista);
@@ -186,11 +184,9 @@ export default function FinanzasPage() {
     );
   };
 
-  // NUEVA FUNCIÓN: Borrar cobro mal hecho o registro erróneo del Libro Mayor y reversar saldo si estaba pendiente
   const borrarCobroErroneoLibroMayor = async (cg: CargoFinanciero) => {
     if (!cg.id) return;
 
-    // Si el cobro estaba PENDIENTE, descontar ese monto mal cargado de la deuda del club
     if (cg.estado === "PENDIENTE" && cg.clubId) {
       const clubActual = clubes.find((c) => c.id === cg.clubId);
       const nuevoSaldo = Math.max(0, (clubActual?.saldoDeudor || 0) - cg.monto);
@@ -407,7 +403,7 @@ export default function FinanzasPage() {
         </div>
       </div>
 
-      {/* TABLA: LIBRO MAYOR DE COBROS EMITIDOS (CON BOTÓN PARA BORRAR COBROS MAL HECHOS) */}
+      {/* TABLA: LIBRO MAYOR DE COBROS EMITIDOS */}
       <div className="bg-slate-900 rounded-2xl border-2 border-slate-800 overflow-hidden shadow-xl">
         <div className="p-4 bg-slate-950 border-b-2 border-slate-800 flex flex-wrap justify-between items-center gap-3">
           <div>
