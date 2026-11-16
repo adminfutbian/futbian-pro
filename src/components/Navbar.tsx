@@ -125,6 +125,18 @@ export default function Navbar() {
           >
             ⭐ Hazte Fan
           </Link>
+              <Link
+  href="/manual"
+  className={`px-3 py-1.5 rounded-lg font-black uppercase text-xs border transition ${
+    pathname === "/manual"
+      ? "bg-cyan-500 text-black border-white"
+      : "bg-slate-950 text-cyan-300 border-cyan-500/50 hover:bg-cyan-500 hover:text-black"
+  }`}
+>
+  📖 Manual
+</Link>
+
+
           <Link
             href="/en-vivo"
             className="bg-red-600/20 text-red-400 border border-red-500/60 px-3 py-1.5 rounded-lg hover:bg-red-600 hover:text-white transition"
@@ -266,6 +278,14 @@ export default function Navbar() {
             >
               ⭐ Hazte Fan
             </Link>
+            <Link
+  href="/manual"
+  onClick={cerrarMenu}
+  className="bg-slate-900 text-cyan-300 p-3 rounded-xl border border-cyan-500/40 text-center"
+>
+  📖 Manual App
+</Link>
+
             <Link
               href="/en-vivo"
               onClick={cerrarMenu}
